@@ -42,8 +42,8 @@ def main():
         file_contains_failures = bool(xunit_report.errors or xunit_report.failures)
 
         # Slack results
-        author_name = ("XUnit Slack Reporter") if (
-            constants.SLACK_MESSAGE_TITLE_ENV_VAR.strip()) else constants.SLACK_MESSAGE_TITLE_ENV_VAR
+        author_name = ("JUnit Slack Reporter") if (
+                constants.SLACK_MESSAGE_TITLE_ENV_VAR == "") else constants.SLACK_MESSAGE_TITLE_ENV_VAR
 
         slack_attachment = {
             "color": constants.PASS_COLOR,
@@ -82,7 +82,7 @@ def main():
 
         slack_attachment['fields'].append({
             "title": "Time elapsed",
-            "value": time.strftime("%H:%M:%S", time.gmtime(int(re.sub("[.,]", "", f"{xunit_report.time}")))),
+            "value": time.strftime("%H:%M:%S", time.gmtime(round(float(f"{xunit_report.time}")))),
             "short": True
         })
 
