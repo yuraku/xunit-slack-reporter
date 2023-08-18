@@ -69,25 +69,25 @@ def main():
 
     slack_attachment['fields'].append({
         "title": "Total # of tests",
-        "value": f"{xunit_report.tests}",
+        "value": f"{number_of_tests}",
         "short": True
     })
 
     slack_attachment['fields'].append({
         "title": "Tests passed",
-        "value": f"{xunit_report.tests - xunit_report.errors - xunit_report.failures}",
+        "value": f"{number_of_passed_tests}",
         "short": True
     })
 
     slack_attachment['fields'].append({
         "title": "Tests errored",
-        "value": f"{xunit_report.errors}",
+        "value": f"{number_of_broken_tests}",
         "short": True
     })
 
     slack_attachment['fields'].append({
         "title": "Tests failed",
-        "value": f"{xunit_report.failures}",
+        "value": f"{number_of_failed_tests}",
         "short": True
     })
 
