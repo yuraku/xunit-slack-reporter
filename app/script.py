@@ -56,9 +56,8 @@ def main():
         time_elapsed = time_elapsed + xunit_report.time
 
     # Slack results
-    author_name = "JUnit Slack Reporter" if (
-        os.getenv(constants.SLACK_MESSAGE_TITLE_ENV_VAR == "")) else os.getenv(
-        constants.SLACK_MESSAGE_TITLE_ENV_VAR)
+    author_name = "JUnit Slack Reporter" if constants.SLACK_MESSAGE_TITLE_ENV_VAR not in os.environ else os.getenv(
+        constants.SLACK_MESSAGE_TITLE_ENV_VAR, "")
 
     slack_attachment = {
         "color": constants.PASS_COLOR,
