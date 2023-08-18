@@ -1,11 +1,11 @@
 import os
-import sys
 import pathlib
+import sys
 import time
-import re
+
 from app import constants
-from app.utils import xunit_utils
 from app.utils import slack_utils
+from app.utils import xunit_utils
 
 
 def main():
@@ -37,59 +37,69 @@ def main():
     # Report on files
     failed_tests = False
 
+    number_of_passed_tests = 0
+    number_of_failed_tests = 0
+    number_of_broken_tests = 0
+    number_of_tests = 0
+    time_elapsed = 0.0
+    file_contains_failures = False
+
     for file in files:
         xunit_report = xunit_utils.read_xunit(file)
-        file_contains_failures = bool(xunit_report.errors or xunit_report.failures)
+        if bool(xunit_report.errors or xunit_report.failures):
+            file_contains_failures = bool(xunit_report.errors or xunit_report.failures)
 
-        # Slack results
-        author_name = ("JUnit Slack Reporter") if (
-                constants.SLACK_MESSAGE_TITLE_ENV_VAR == "") else constants.SLACK_MESSAGE_TITLE_ENV_VAR
+        number_of_passed_tests = number_of_passed_tests + xunit_report.tests - xunit_report.errors - xunit_report.failures
+        number_of_failed_tests = number_of_failed_tests + xunit_report.failures
+        number_of_broken_tests = number_of_broken_tests + xunit_report.errors
+        number_of_tests = number_of_tests + xunit_report.tests
+        time_elapsed = time_elapsed + xunit_report.time
 
-        slack_attachment = {
-            "color": constants.PASS_COLOR,
-            "author_name": author_name,
-            "author_link": f"https://github.com/{os.getenv('GITHUB_REPOSITORY')}/actions/runs/{os.getenv('GITHUB_RUN_ID')}",
-            "title": f"Test results for \"{os.getenv('GITHUB_WORKFLOW')}\" on \"{os.getenv('GITHUB_REF')}\"",
-            "fields": []
-        }
+    # Slack results
+    author_name = "JUnit Slack Reporter" if (
+        os.getenv(constants.SLACK_MESSAGE_TITLE_ENV_VAR == "")) else os.getenv(
+        constants.SLACK_MESSAGE_TITLE_ENV_VAR)
 
-        if file_contains_failures:
-            slack_attachment['color'] = constants.FAIL_COLOR
+    slack_attachment = {
+        "color": constants.PASS_COLOR,
+        "author_name": author_name,
+        "author_link": f"https://github.com/{os.getenv('GITHUB_REPOSITORY')}/actions/runs/{os.getenv('GITHUB_RUN_ID')}",
+        "title": f"Test results for \"{os.getenv('GITHUB_WORKFLOW')}\" on \"{os.getenv('GITHUB_REF')}\"",
+        "fields": []
+    }
 
-        slack_attachment['fields'].append({
-            "title": "Total # of tests",
-            "value": f"{xunit_report.tests}",
-            "short": True
-        })
+    slack_attachment['fields'].append({
+        "title": "Total # of tests",
+        "value": f"{xunit_report.tests}",
+        "short": True
+    })
 
-        slack_attachment['fields'].append({
-            "title": "Tests passed",
-            "value": f"{xunit_report.tests - xunit_report.errors - xunit_report.failures}",
-            "short": True
-        })
+    slack_attachment['fields'].append({
+        "title": "Tests passed",
+        "value": f"{xunit_report.tests - xunit_report.errors - xunit_report.failures}",
+        "short": True
+    })
 
-        slack_attachment['fields'].append({
-            "title": "Tests errored",
-            "value": f"{xunit_report.errors}",
-            "short": True
-        })
+    slack_attachment['fields'].append({
+        "title": "Tests errored",
+        "value": f"{xunit_report.errors}",
+        "short": True
+    })
 
-        slack_attachment['fields'].append({
-            "title": "Tests failed",
-            "value": f"{xunit_report.failures}",
-            "short": True
-        })
+    slack_attachment['fields'].append({
+        "title": "Tests failed",
+        "value": f"{xunit_report.failures}",
+        "short": True
+    })
 
-        slack_attachment['fields'].append({
-            "title": "Time elapsed",
-            "value": time.strftime("%H:%M:%S", time.gmtime(round(float(f"{xunit_report.time}")))),
-            "short": True
-        })
+    slack_attachment['fields'].append({
+        "title": "Time elapsed",
+        "value": time.strftime("%H:%M:%S", time.gmtime(round(time_elapsed))),
+        "short": True
+    })
 
-        slack_attachment['fields'].append({
-            "title": "File",
-            "value": str(file)
-        })
+    if file_contains_failures:
+        slack_attachment['color'] = constants.FAIL_COLOR
 
         # If success, only send if configured.
         if not file_contains_failures:
@@ -98,7 +108,7 @@ def main():
                     os.getenv(constants.SLACK_CHANNEL_ENV_VAR),
                     attachments=[slack_attachment]
                 )
-        # If error or failure.
+            # If error or failure.
         else:
             slack_utils.send_slack_msg(
                 os.getenv(constants.SLACK_CHANNEL_ENV_VAR),
