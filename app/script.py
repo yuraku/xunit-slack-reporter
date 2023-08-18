@@ -2,6 +2,7 @@ import os
 import sys
 import pathlib
 import time
+import re
 from app import constants
 from app.utils import xunit_utils
 from app.utils import slack_utils
@@ -81,7 +82,7 @@ def main():
 
         slack_attachment['fields'].append({
             "title": "Time elapsed",
-            "value": time.strftime("%H:%M:%S", time.gmtime(int(f"{xunit_report.time}"))),
+            "value": time.strftime("%H:%M:%S", time.gmtime(int(re.sub("[.,]", "", f"{xunit_report.time}")))),
             "short": True
         })
 
