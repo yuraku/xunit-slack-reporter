@@ -10,7 +10,8 @@ from app.utils import slack_utils
 def main():
     # Check input values.
     if constants.XUNIT_PATH_ENV_VAR not in os.environ and constants.XUNIT_PATH_GLOB_ENV_VAR not in os.environ:
-        raise Exception(f"xunit file(s) not found!  Please make sure to set the {constants.XUNIT_PATH_ENV_VAR} or {constants.XUNIT_PATH_GLOB_ENV_VAR} env variable!")
+        raise Exception(
+            f"xunit file(s) not found!  Please make sure to set the {constants.XUNIT_PATH_ENV_VAR} or {constants.XUNIT_PATH_GLOB_ENV_VAR} env variable!")
 
     if constants.SLACK_CHANNEL_ENV_VAR not in os.environ:
         raise Exception(f"Slack channel!  Please make sure to set the {constants.SLACK_CHANNEL_ENV_VAR} env variable!")
@@ -40,7 +41,8 @@ def main():
         file_contains_failures = bool(xunit_report.errors or xunit_report.failures)
 
         # Slack results
-        author_name = ("XUnit Slack Reporter") if (constants.SLACK_MESSAGE_TITLE_ENV_VAR.strip()) else constants.SLACK_MESSAGE_TITLE_ENV_VAR
+        author_name = ("XUnit Slack Reporter") if (
+            constants.SLACK_MESSAGE_TITLE_ENV_VAR.strip()) else constants.SLACK_MESSAGE_TITLE_ENV_VAR
 
         slack_attachment = {
             "color": constants.PASS_COLOR,
@@ -79,7 +81,7 @@ def main():
 
         slack_attachment['fields'].append({
             "title": "Time elapsed",
-            "value": time.strftime("%H:%M:%S", time.gmtime({xunit_report.time})),
+            "value": time.strftime("%H:%M:%S", time.gmtime(int(f"{xunit_report.time}"))),
             "short": True
         })
 
@@ -98,8 +100,8 @@ def main():
         # If error or failure.
         else:
             slack_utils.send_slack_msg(
-                    os.getenv(constants.SLACK_CHANNEL_ENV_VAR),
-                    attachments=[slack_attachment]
+                os.getenv(constants.SLACK_CHANNEL_ENV_VAR),
+                attachments=[slack_attachment]
             )
             failed_tests = True
 
@@ -107,6 +109,7 @@ def main():
     if exit_on_failure:
         if failed_tests:
             sys.exit(1)
+
 
 if __name__ == "__main__":
     main()
