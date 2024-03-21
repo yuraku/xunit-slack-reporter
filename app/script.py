@@ -62,8 +62,8 @@ def main():
     slack_attachment = {
         "color": constants.PASS_COLOR,
         "author_name": author_name,
-        "author_link": f"https://github.com/{os.getenv('GITHUB_REPOSITORY')}/actions/runs/{os.getenv('GITHUB_RUN_ID')}",
-        "title": f"Test results for \"{os.getenv('GITHUB_WORKFLOW')}\" on \"{os.getenv('GITHUB_REF')}\"",
+        "author_link": f"https://github.com/{os.getenv('GITHUB_REPOSITORY')}/actions/runs/{os.getenv('GITHUB_RUN_ID')} (link)",
+        "title": f"Pipeline {os.getenv('GITHUB_WORKFLOW')} on branch \"{os.getenv('GITHUB_REF')}\" executed with results:",
         "fields": []
     }
 
@@ -99,21 +99,19 @@ def main():
 
     if file_contains_failures:
         slack_attachment['color'] = constants.FAIL_COLOR
-
-        # If success, only send if configured.
-        if not file_contains_failures:
-            if not only_notify_on_issues:
-                slack_utils.send_slack_msg(
-                    os.getenv(constants.SLACK_CHANNEL_ENV_VAR),
-                    attachments=[slack_attachment]
-                )
-            # If error or failure.
-        else:
+        # If error or failure.
+        slack_utils.send_slack_msg(
+            os.getenv(constants.SLACK_CHANNEL_ENV_VAR),
+            attachments=[slack_attachment]
+        )
+        failed_tests = True
+    # If success, only send if configured.
+    elif not file_contains_failures:
+        if not only_notify_on_issues:
             slack_utils.send_slack_msg(
                 os.getenv(constants.SLACK_CHANNEL_ENV_VAR),
                 attachments=[slack_attachment]
             )
-            failed_tests = True
 
     # Return appropriate status code.
     if exit_on_failure:
