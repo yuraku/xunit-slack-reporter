@@ -17,9 +17,9 @@ WORKDIR /source
 # ---------------------------------------------------------------------- #
 COPY poetry.lock /source
 COPY pyproject.toml /source
-RUN pip install -U pip poetry
+RUN pip install -U pip poetry==1.5.1
 RUN poetry config virtualenvs.create false
-RUN poetry install --only main
+RUN poetry install --no-dev
 
 # Copy files into image
 # ---------------------------------------------------------------------- #
